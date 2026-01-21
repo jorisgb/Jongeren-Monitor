@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#ce4a50"    # Goud/Oker (voor knoppen en selecties)
-backgroundColor = "#ffffff" # Diep Teal (voor de achtergrond)
+primaryColor = "#4f85d6"    # Goud/Oker (voor knoppen en selecties)
+backgroundColor = "#e78a8a" # Diep Teal (voor de achtergrond)
 secondaryBackgroundColor = "#c51c1c" # Iets lichter blauw (voor de zijbalk)
-textColor = "#1f4997"       # Wit (zodat tekst leesbaar is op donker)
+textColor = "#ffffff"       # Wit (zodat tekst leesbaar is op donker)
 font = "sans serif"
