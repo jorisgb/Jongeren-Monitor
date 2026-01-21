@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="Brabantse Jongeren Monitor", page_icon="📊", layout="wide")
 
 # ====================================================================
-#              👇 HIER KUN JE JE EIGEN TEKST AANPASSEN 👇
+#               👇HIER KUN JE JE EIGEN TEKST AANPASSEN 👇
 # ====================================================================
 
 TITEL_DASHBOARD = "Brabantse Jongeren Dashboard"
@@ -15,12 +15,25 @@ TITEL_DASHBOARD = "Brabantse Jongeren Dashboard"
 INTRO_TEKST = """
 **Welkom!**
 
+**Noord-Brabant telt ruim 600.000 jongeren met eigen ambities en dromen.** ✨
+
+Toch zien we dat zij tegen steeds meer uitdagingen aanlopen, zoals prestatiedruk, 
+mentale gezondheidskwesties en zorgen over hun leefomgeving.
+
+De provincie wil af van beleid maken *over* jongeren, en toe naar beleid maken **méth** jongeren. 
+Zodat zij actieve medeontwerpers worden van onze samenleving. 🤝
+
+**Dit dashboard is de eerste stap:**
+* 🔍 **Verken** de data via het menu aan de linkerkant.
+* 📊 **Zie** waar de grootste zorgen en kansen liggen.
+* 🚀 **Ontdek** hoe we deze generatie in hun kracht kunnen zetten
+
 Hieronder zie je de resultaten van het onderzoek naar jongeren in Noord-Brabant.
 We hebben gekeken naar hun zorgen, drijfveren en hoe we ze het beste kunnen bereiken.
 
 **Gebruiksaanwijzing:**
 1.  👈 Gebruik de **filters in de linkerbalk** om een specifieke doelgroep te kiezen (bijv. Vrouwen uit een Dorp).
-2.  👆 Klik op de **tabbladen** hierboven om te wisselen tussen de onderwerpen.
+2.  👇 Klik op de **tabbladen** hieronder om te wisselen tussen de onderwerpen.
 """
 
 # ====================================================================
