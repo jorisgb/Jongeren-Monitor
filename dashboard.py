@@ -4,6 +4,33 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import base64
 
+st.markdown("""
+    <style>
+        /* 1. De Grote Titel bovenaan (H1) */
+        h1 {
+            font-size: 40px !important;
+        }
+        
+        /* 2. De tussenkopjes (H2 en H3) */
+        h2 {
+            font-size: 30px !important;
+        }
+        h3 {
+            font-size: 24px !important;
+        }
+        
+        /* 3. De normale tekst en lijsten (p en li) */
+        p, li, .stMarkdown {
+            font-size: 20px !important; 
+        }
+        
+        /* 4. De kleine lettertjes (captions onder grafieken) */
+        .stCaption {
+            font-size: 14px !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- 1. CONFIGURATIE ---
 st.set_page_config(page_title="Brabantse Jongeren Monitor", page_icon="📊", layout="wide")
 
@@ -45,10 +72,9 @@ def set_background(image_file):
             background-image: url("data:image/jpg;base64,{b64_data}");
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            background-attachment: scroll;
         }}
         h1, h2, h3, p, li, .stMarkdown {{
-            text-shadow: 2px 2px 4px #000000;
         }}
         </style>
         """
