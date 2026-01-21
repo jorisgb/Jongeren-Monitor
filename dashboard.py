@@ -3,11 +3,12 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import base64
+
 # --- 1. CONFIGURATIE ---
 st.set_page_config(page_title="Brabantse Jongeren Monitor", page_icon="📊", layout="wide")
 
 # ====================================================================
-#               👇HIER KUN JE JE EIGEN TEKST AANPASSEN 👇
+#              👇 HIER KUN JE JE EIGEN TEKST AANPASSEN 👇
 # ====================================================================
 
 TITEL_DASHBOARD = "Brabantse Jongeren Dashboard"
@@ -20,38 +21,24 @@ INTRO_TEKST = """
 Toch zien we dat zij tegen steeds meer uitdagingen aanlopen, zoals prestatiedruk, 
 mentale gezondheidskwesties en zorgen over hun leefomgeving.
 
-De provincie wil af van beleid maken *over* jongeren, en toe naar beleid maken **méth** jongeren. 
+De provincie wil af van beleid maken *over* jongeren, en toe naar beleid maken **mét** jongeren. 
 Zodat zij actieve medeontwerpers worden van onze samenleving. 🤝
 
 **Dit dashboard is de eerste stap:**
 * 🔍 **Verken** de data via het menu aan de linkerkant.
-* 📊 **Zie** waar de grootste zorgen en kansen liggen.
-* 🚀 **Ontdek** hoe we deze generatie in hun kracht kunnen zetten
-
-Hieronder zie je de resultaten van het onderzoek naar jongeren in Noord-Brabant.
-We hebben gekeken naar hun zorgen, drijfveren en hoe we ze het beste kunnen bereiken.
-
-**Gebruiksaanwijzing:**
-1.  👈 Gebruik de **filters in de linkerbalk** om een specifieke doelgroep te kiezen (bijv. Vrouwen uit een Dorp).
-2.  👇 Klik op de **tabbladen** hieronder om te wisselen tussen de onderwerpen.
+* ⚖️ **Vergelijk** groepen (bijv. Stad vs Dorp) in het nieuwe tabblad.
+* 🚀 **Ontdek** hoe we deze generatie in hun kracht kunnen zetten.
 """
 
 # ====================================================================
-#              👆 TOT HIER AANPASSEN 👆
+#              🎨 ACHTERGROND & STYLING 🎨
 # ====================================================================
 def set_background(image_file):
-    """
-    Deze functie zorgt ervoor dat je plaatje als achtergrond wordt ingesteld
-    en dat hij 'vast' staat (Parallax effect).
-    """
     try:
         with open(image_file, "rb") as f:
             data = f.read()
         b64_data = base64.b64encode(data).decode()
         
-        # Hieronder staat de CSS magie
-        # background-attachment: fixed;  <-- DIT ZORGT VOOR HET DIEPTE EFFECT
-        # opacity: 0.15;                 <-- DIT MAAKT HEM IETS DOORZICHTIGER (zodat tekst leesbaar blijft)
         page_bg_img = f"""
         <style>
         .stApp {{
@@ -60,8 +47,6 @@ def set_background(image_file):
             background-position: center;
             background-attachment: fixed;
         }}
-        
-        /* Zorg dat de witte tekst goed leesbaar blijft met een klein schaduwrandje */
         h1, h2, h3, p, li, .stMarkdown {{
             text-shadow: 2px 2px 4px #000000;
         }}
@@ -69,18 +54,18 @@ def set_background(image_file):
         """
         st.markdown(page_bg_img, unsafe_allow_html=True)
     except FileNotFoundError:
-        st.warning(f"⚠️ Kon achtergrondafbeelding '{image_file}' niet vinden. Zorg dat hij in de map staat!")
+        pass # Geen plaatje? Geen probleem.
 
-# --- AANROEPEN ACHTERGROND ---
-# Zorg dat je een plaatje hebt genaamd 'achtergrond.jpg' in je map!
 set_background('achtergrond.jpg')
 
-# --- 2. FUNCTIES ---
+# ====================================================================
+#              ⚙️ FUNCTIES ⚙️
+# ====================================================================
+
 @st.cache_data
 def laad_data():
     try:
         df = pd.read_csv('data.csv', sep=';', engine='python')
-        # Uitgebreide hernoeming van kolommen
         df = df.rename(columns={
             'Woon je in een stad of dorp?': 'Locatie',
             'Wat is jouw leeftijd? (geef je leeftijd in cijfers)': 'Leeftijd',
@@ -95,17 +80,15 @@ def laad_data():
             'Via welk kanaal zouden we jou het beste kunnen bereiken? (Meerdere antwoorden mogelijk)': 'Kanalen'
         })
         
-        # Data schoonmaken
         df['Leeftijd'] = pd.to_numeric(df['Leeftijd'], errors='coerce')
         df['Motivatie_Combined'] = df['Motivatie_1'].fillna('') + ',' + df['Motivatie_2'].fillna('')
-        
         return df
     except Exception as e:
         st.error(f"Fout bij laden data: {e}")
         return None
 
 def split_en_tel(series):
-    """Hulpfunctie om komma-gescheiden antwoorden te tellen"""
+    """Simpele teller voor enkele lijsten"""
     alle_items = []
     for item in series.dropna():
         if isinstance(item, str):
@@ -113,34 +96,63 @@ def split_en_tel(series):
             alle_items.extend([s for s in stukjes if s])
     return pd.Series(alle_items).value_counts()
 
-# --- 3. INLADEN ---
+def bereid_data_voor_vergelijking(df, kolom_met_lijstjes, groepeer_kolom):
+    """
+    Speciale functie die data 'uit elkaar trekt' zodat we groepen kunnen vergelijken.
+    """
+    records = []
+    for index, row in df.iterrows():
+        waarde = row[kolom_met_lijstjes]
+        groep = row[groepeer_kolom]
+        
+        if isinstance(waarde, str) and isinstance(groep, str):
+            items = [x.strip() for x in waarde.split(',')]
+            for item in items:
+                if item:
+                    records.append({'Item': item, 'Groep': groep})
+    
+    return pd.DataFrame(records)
+
+def maak_beschrijving(filters):
+    """Maakt een mooie zin op basis van de gekozen filters"""
+    tekst = "Deze grafiek toont de resultaten voor: "
+    delen = []
+    
+    if len(filters['Locatie']) > 0: delen.append(f"inwoners uit {', '.join(filters['Locatie'])}")
+    if len(filters['Geslacht']) > 0: delen.append(f"personen die zich identificeren als {', '.join(filters['Geslacht'])}")
+    if len(filters['Opleiding']) > 0: delen.append(f"studenten van {', '.join(filters['Opleiding'])}")
+    
+    if not delen:
+        return tekst + "Alle respondenten."
+    else:
+        return tekst + " + ".join(delen) + "."
+
+# ====================================================================
+#              🚀 HOOFD PROGRAMMA 🚀
+# ====================================================================
 df = laad_data()
 
 if df is not None:
     
-    # --- 4. SIDEBAR FILTERS (UITGEBREID) ---
+    # --- SIDEBAR FILTERS ---
     st.sidebar.header("🔍 Filters")
     st.sidebar.markdown("Stel hier je doelgroep samen:")
 
-    # Filter 1: Locatie
-    opties_locatie = df['Locatie'].unique()
+    opties_locatie = df['Locatie'].dropna().unique()
     keuze_locatie = st.sidebar.multiselect("Woonplaats", opties_locatie, default=opties_locatie)
     
-    # Filter 2: Geslacht
-    opties_geslacht = df['Geslacht'].unique()
+    opties_geslacht = df['Geslacht'].dropna().unique()
     keuze_geslacht = st.sidebar.multiselect("Geslacht", opties_geslacht, default=opties_geslacht)
 
-    # Filter 3: Opleiding
-    opties_opleiding = df['Opleiding'].unique()
+    opties_opleiding = df['Opleiding'].dropna().unique()
     keuze_opleiding = st.sidebar.multiselect("Opleiding", opties_opleiding, default=opties_opleiding)
     
-    # Filter 4: Leeftijd (Slider)
     if df['Leeftijd'].notnull().any():
         min_l = int(df['Leeftijd'].min())
         max_l = int(df['Leeftijd'].max())
         keuze_leeftijd = st.sidebar.slider("Leeftijd", min_l, max_l, (min_l, max_l))
     else:
-        keuze_leeftijd = (0, 100) # Fallback als leeftijd leeg is
+        keuze_leeftijd = (0, 100)
 
     # --- FILTER TOEPASSEN ---
     df_filtered = df[
@@ -150,39 +162,47 @@ if df is not None:
         (df['Leeftijd'] >= keuze_leeftijd[0]) &
         (df['Leeftijd'] <= keuze_leeftijd[1])
     ]
-
-    # --- 5. HOOFDPAGINA ---
     
-    # Jouw titel en tekst
+    # Filters opslaan voor de tekst
+    huidige_filters = {'Locatie': keuze_locatie, 'Geslacht': keuze_geslacht, 'Opleiding': keuze_opleiding}
+    beschrijving_tekst = maak_beschrijving(huidige_filters)
+
+    # --- HOOFDPAGINA ---
     st.title(TITEL_DASHBOARD)
     st.markdown(INTRO_TEKST)
     st.markdown("---")
 
-    # KPI's
-    st.markdown(f"**Geselecteerde groep:** {len(df_filtered)} respondenten")
+    st.markdown(f"**Huidige selectie:** {len(df_filtered)} respondenten")
     if len(df_filtered) < 3:
-        st.warning("⚠️ Let op: Je hebt erg ver doorgefilterd. Er is weinig data over.")
+        st.warning("⚠️ Let op: Weinig data over. Filters zijn erg streng.")
 
     # TABBLADEN
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "🏠 Demografie", 
         "📢 Thema's", 
         "🚀 Motivatie", 
         "📱 Communicatie",
+        "⚖️ Vergelijken", 
         "📋 Ruwe Data"
     ])
+
+    # Styling
+    sns.set_style("darkgrid")
 
     # --- TAB 1: DEMOGRAFIE ---
     with tab1:
         st.header("Wie zijn deze jongeren?")
-        col1, col2 = st.columns(2)
+        st.info(f"ℹ️ {beschrijving_tekst}")
         
+        # RIJ 1: Locatie & Opleiding
+        col1, col2 = st.columns(2)
         with col1:
             st.subheader("Woonplaats")
             fig, ax = plt.subplots()
             sns.countplot(data=df_filtered, x='Locatie', palette='viridis', ax=ax)
             ax.bar_label(ax.containers[0])
             st.pyplot(fig)
+            st.caption(f"Verdeling tussen Stad en Dorp binnen jouw selectie.")
             
         with col2:
             st.subheader("Opleidingsniveau")
@@ -190,13 +210,16 @@ if df is not None:
             sns.countplot(data=df_filtered, y='Opleiding', palette='rocket', ax=ax)
             ax.bar_label(ax.containers[0])
             st.pyplot(fig)
-
+            st.caption(f"Het opleidingsniveau van de geselecteerde groep.")
+            
+        # RIJ 2: Leeftijd & Geslacht (DEZE WAREN WEG, NU TERUG!)
         col3, col4 = st.columns(2)
         with col3:
             st.subheader("Leeftijdsverdeling")
             fig, ax = plt.subplots()
             sns.histplot(df_filtered['Leeftijd'], bins=10, kde=True, color='skyblue', ax=ax)
             st.pyplot(fig)
+            st.caption("De leeftijdsopbouw van deze groep.")
         
         with col4:
             st.subheader("Geslacht")
@@ -205,29 +228,32 @@ if df is not None:
             if len(counts) > 0:
                 ax.pie(counts, labels=counts.index, autopct='%1.1f%%', colors=sns.color_palette('pastel'))
             st.pyplot(fig)
+            st.caption("Verdeling man/vrouw/anders.")
 
     # --- TAB 2: THEMA'S ---
     with tab2:
         st.header("Waar liggen ze wakker van?")
-        top_themas = split_en_tel(df_filtered['Themas']).head(15)
+        st.info(f"ℹ️ {beschrijving_tekst} - Dit zijn de thema's die zij belangrijk vinden.")
         
+        top_themas = split_en_tel(df_filtered['Themas']).head(15)
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.barplot(x=top_themas.values, y=top_themas.index, palette='Reds_r', ax=ax)
-        ax.set_xlabel("Aantal keer genoemd")
-        ax.bar_label(ax.containers[0])
+        ax.set_xlabel("Aantal stemmen")
         st.pyplot(fig)
+        st.caption("Top 15 meest gekozen thema's door deze groep.")
 
     # --- TAB 3: MOTIVATIE ---
     with tab3:
         st.header("Hoe krijgen we ze mee?")
+        st.info(f"ℹ️ Inzichten in de motivatie van: {', '.join(keuze_geslacht) if len(keuze_geslacht) < 3 and len(keuze_geslacht) > 0 else 'de geselecteerde groep'}.")
+
         c1, c2 = st.columns(2)
-        
         with c1:
             st.subheader("Bereidheid tot deelname")
             fig, ax = plt.subplots()
             sns.countplot(data=df_filtered, x='Deelname', palette='Set2', ax=ax)
-            ax.bar_label(ax.containers[0])
             st.pyplot(fig)
+            st.caption("Willen ze meedoen aan toekomstig onderzoek?")
             
         with c2:
             st.subheader("Top Motivatoren")
@@ -235,20 +261,62 @@ if df is not None:
             fig, ax = plt.subplots()
             sns.barplot(x=top_motivatie.values, y=top_motivatie.index, palette='Greens_r', ax=ax)
             st.pyplot(fig)
+            st.caption("Wat trekt hen over de streep?")
 
     # --- TAB 4: COMMUNICATIE ---
     with tab4:
         st.header("Via welk kanaal?")
-        top_kanalen = split_en_tel(df_filtered['Kanalen'])
+        st.info(f"ℹ️ {beschrijving_tekst} - Waar zijn ze online te vinden?")
         
+        top_kanalen = split_en_tel(df_filtered['Kanalen'])
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.barplot(x=top_kanalen.values, y=top_kanalen.index, palette='Blues_r', ax=ax)
-        ax.bar_label(ax.containers[0])
         st.pyplot(fig)
+        st.caption("De populairste mediakanalen voor deze doelgroep.")
 
-    # --- TAB 5: DATA ---
+    # --- TAB 5: VERGELIJKEN ---
     with tab5:
-        st.header("Alle data inzien")
+        st.header("⚖️ Vergelijk Groepen")
+        st.markdown("""
+        Hier kun je zelf onderzoek doen! Kies een onderwerp en kijk hoe verschillende groepen (bijv. Stad vs Dorp) daarover denken.
+        """)
+        
+        col_opties1, col_opties2 = st.columns(2)
+        
+        with col_opties1:
+            onderwerp = st.selectbox("1. Wat wil je analyseren?", 
+                                     ["Thema's (Zorgen)", "Communicatie Kanalen", "Motivatie om mee te doen"])
+        
+        with col_opties2:
+            vergelijk_op = st.selectbox("2. Vergelijk op basis van:", 
+                                        ["Locatie", "Geslacht", "Opleiding", "Deelname"])
+
+        kolom_map = {
+            "Thema's (Zorgen)": 'Themas',
+            "Communicatie Kanalen": 'Kanalen',
+            "Motivatie om mee te doen": 'Motivatie_Combined'
+        }
+        gekozen_data_kolom = kolom_map[onderwerp]
+        
+        vergelijk_df = bereid_data_voor_vergelijking(df_filtered, gekozen_data_kolom, vergelijk_op)
+        
+        if not vergelijk_df.empty:
+            top_items = vergelijk_df['Item'].value_counts().head(10).index
+            vergelijk_df_top = vergelijk_df[vergelijk_df['Item'].isin(top_items)]
+            
+            st.subheader(f"Verschil in '{onderwerp}' per '{vergelijk_op}'")
+            
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.countplot(data=vergelijk_df_top, y='Item', hue='Groep', palette='tab10', ax=ax, order=top_items)
+            
+            st.pyplot(fig)
+            st.info(f"💡 In deze grafiek zie je hoe **{vergelijk_op}** invloed heeft op **{onderwerp}**. De balkjes staan naast elkaar zodat je verschillen direct ziet.")
+        else:
+            st.warning("Niet genoeg data om te vergelijken met deze filters.")
+
+    # --- TAB 6: DATA ---
+    with tab6:
+        st.header("Ruwe Data")
         st.dataframe(df_filtered)
 
 else:
