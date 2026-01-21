@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import base64
 # --- 1. CONFIGURATIE ---
 st.set_page_config(page_title="Brabantse Jongeren Monitor", page_icon="📊", layout="wide")
 
@@ -39,6 +39,41 @@ We hebben gekeken naar hun zorgen, drijfveren en hoe we ze het beste kunnen bere
 # ====================================================================
 #              👆 TOT HIER AANPASSEN 👆
 # ====================================================================
+def set_background(image_file):
+    """
+    Deze functie zorgt ervoor dat je plaatje als achtergrond wordt ingesteld
+    en dat hij 'vast' staat (Parallax effect).
+    """
+    try:
+        with open(image_file, "rb") as f:
+            data = f.read()
+        b64_data = base64.b64encode(data).decode()
+        
+        # Hieronder staat de CSS magie
+        # background-attachment: fixed;  <-- DIT ZORGT VOOR HET DIEPTE EFFECT
+        # opacity: 0.15;                 <-- DIT MAAKT HEM IETS DOORZICHTIGER (zodat tekst leesbaar blijft)
+        page_bg_img = f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{b64_data}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        
+        /* Zorg dat de witte tekst goed leesbaar blijft met een klein schaduwrandje */
+        h1, h2, h3, p, li, .stMarkdown {{
+            text-shadow: 2px 2px 4px #000000;
+        }}
+        </style>
+        """
+        st.markdown(page_bg_img, unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning(f"⚠️ Kon achtergrondafbeelding '{image_file}' niet vinden. Zorg dat hij in de map staat!")
+
+# --- AANROEPEN ACHTERGROND ---
+# Zorg dat je een plaatje hebt genaamd 'achtergrond.jpg' in je map!
+set_background('achtergrond.jpg')
 
 # --- 2. FUNCTIES ---
 @st.cache_data
