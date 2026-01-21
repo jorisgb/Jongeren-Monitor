@@ -1,5 +1,5 @@
 [theme]
-primaryColor = "#4f85d6"    # Goud/Oker (voor knoppen en selecties)
+primaryColor = "#08234d"    # Goud/Oker (voor knoppen en selecties)
 backgroundColor = "#e78a8a" # Diep Teal (voor de achtergrond)
 secondaryBackgroundColor = "#c51c1c" # Iets lichter blauw (voor de zijbalk)
 textColor = "#ffffff"       # Wit (zodat tekst leesbaar is op donker)
