@@ -1,6 +1,15 @@
 [theme]
-primaryColor = "#08234d"    # Goud/Oker (voor knoppen en selecties)
-backgroundColor = "#e78a8a" # Diep Teal (voor de achtergrond)
-secondaryBackgroundColor = "#c51c1c" # Iets lichter blauw (voor de zijbalk)
-textColor = "#ffffff"       # Wit (zodat tekst leesbaar is op donker)
+# PNB Rood - Voor knoppen, sliders en selecties
+primaryColor = "#DD0000"
+
+# Wit - De basis achtergrondkleur
+backgroundColor = "#FFFFFF"
+
+# PNB Licht Warmgrijs - Voor de zijbalk (Sidebar) en blokken
+secondaryBackgroundColor = "#EAEDEE"
+
+# PNB Zwart - Voor alle leestekst
+textColor = "#1D1D1B"
+
+# Font - De provincie gebruikt online vaak Arial of Futura, sans serif komt het dichtst in de buurt
 font = "sans serif"
