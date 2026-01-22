@@ -238,7 +238,7 @@ if df is not None:
             st.pyplot(fig)
             st.caption(f"Het opleidingsniveau van de geselecteerde groep.")
             
-        # RIJ 2: Leeftijd & Geslacht (DEZE WAREN WEG, NU TERUG!)
+        # RIJ 2: Leeftijd & Geslacht
         col3, col4 = st.columns(2)
         with col3:
             st.subheader("Leeftijdsverdeling")
@@ -300,14 +300,15 @@ if df is not None:
         st.pyplot(fig)
         st.caption("De populairste mediakanalen voor deze doelgroep.")
 
-    # --- TAB 5: VERGELIJKEN ---
+    # --- TAB 5: VERGELIJKEN (VERNIEUWD) ---
     with tab5:
         st.header("⚖️ Vergelijk Groepen")
         st.markdown("""
         Hier kun je zelf onderzoek doen! Kies een onderwerp en kijk hoe verschillende groepen (bijv. Stad vs Dorp) daarover denken.
         """)
         
-        col_opties1, col_opties2 = st.columns(2)
+        # Keuze opties
+        col_opties1, col_opties2, col_opties3 = st.columns(3)
         
         with col_opties1:
             onderwerp = st.selectbox("1. Wat wil je analyseren?", 
@@ -316,6 +317,9 @@ if df is not None:
         with col_opties2:
             vergelijk_op = st.selectbox("2. Vergelijk op basis van:", 
                                         ["Locatie", "Geslacht", "Opleiding", "Deelname"])
+            
+        with col_opties3:
+            weergave = st.radio("3. Kies weergave:", ["Aantallen", "Percentages"], horizontal=True)
 
         kolom_map = {
             "Thema's (Zorgen)": 'Themas',
@@ -324,19 +328,49 @@ if df is not None:
         }
         gekozen_data_kolom = kolom_map[onderwerp]
         
+        # Stap A: Data splitsen
         vergelijk_df = bereid_data_voor_vergelijking(df_filtered, gekozen_data_kolom, vergelijk_op)
         
         if not vergelijk_df.empty:
+            
+            # Stap B: Berekenen Aantallen
+            # We groeperen op 'Groep' (bijv Stad) en 'Item' (bijv Veiligheid) en tellen hoe vaak het voorkomt
+            tel_df = vergelijk_df.groupby(['Groep', 'Item']).size().reset_index(name='Aantal')
+            
+            # Stap C: Berekenen Percentages
+            # We moeten weten hoeveel mensen er TOTAAL in die groep zitten in de huidige selectie
+            groep_totalen = df_filtered[vergelijk_op].value_counts()
+            
+            # Functie om percentage te berekenen
+            def get_percentage(row):
+                totaal_in_deze_groep = groep_totalen.get(row['Groep'], 1) # , 1 voorkomt delen door nul
+                return (row['Aantal'] / totaal_in_deze_groep) * 100
+            
+            tel_df['Percentage'] = tel_df.apply(get_percentage, axis=1)
+
+            # Stap D: Alleen de top 10 items tonen (anders wordt de grafiek te druk)
             top_items = vergelijk_df['Item'].value_counts().head(10).index
-            vergelijk_df_top = vergelijk_df[vergelijk_df['Item'].isin(top_items)]
+            plot_df = tel_df[tel_df['Item'].isin(top_items)]
             
             st.subheader(f"Verschil in '{onderwerp}' per '{vergelijk_op}'")
             
             fig, ax = plt.subplots(figsize=(12, 6))
-            sns.countplot(data=vergelijk_df_top, y='Item', hue='Groep', palette='tab10', ax=ax, order=top_items)
+            
+            if weergave == "Aantallen":
+                sns.barplot(data=plot_df, y='Item', x='Aantal', hue='Groep', palette='tab10', ax=ax, order=top_items)
+                ax.set_xlabel("Aantal keer genoemd")
+            else:
+                sns.barplot(data=plot_df, y='Item', x='Percentage', hue='Groep', palette='tab10', ax=ax, order=top_items)
+                ax.set_xlabel("Percentage van de groep (%)")
+                ax.set_xlim(0, 100) # Percentage loopt tot 100
             
             st.pyplot(fig)
-            st.info(f"💡 In deze grafiek zie je hoe **{vergelijk_op}** invloed heeft op **{onderwerp}**. De balkjes staan naast elkaar zodat je verschillen direct ziet.")
+            
+            if weergave == "Percentages":
+                st.info(f"💡 **Tip:** Je kijkt nu naar percentages. Voorbeeld: Als de balk bij 'Stad' op 50% staat, betekent dit dat de helft van alle jongeren uit de stad dit heeft aangevinkt.")
+            else:
+                 st.info(f"💡 In deze grafiek zie je de absolute aantallen. Let op: als de ene groep veel groter is dan de andere (bijv. veel meer mensen uit een dorp), zullen die balkjes vanzelf hoger zijn.")
+
         else:
             st.warning("Niet genoeg data om te vergelijken met deze filters.")
 
