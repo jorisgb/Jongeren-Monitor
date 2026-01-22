@@ -122,6 +122,26 @@ def split_en_tel(series):
             stukjes = [x.strip() for x in item.split(',')]
             alle_items.extend([s for s in stukjes if s])
     return pd.Series(alle_items).value_counts()
+def voeg_download_knop_toe(figuur, bestandsnaam="grafiek.png"):
+    """
+    Deze functie maakt een downloadknop voor een Matplotlib figuur.
+    """
+    # 1. Maak een tijdelijke opslag in het geheugen
+    buf = io.BytesIO()
+    
+    # 2. Sla de grafiek op in die tijdelijke opslag
+    figuur.savefig(buf, format="png", bbox_inches='tight', dpi=300)
+    
+    # 3. Zet de 'lezer' weer aan het begin van het bestand
+    buf.seek(0)
+    
+    # 4. Maak de knop in Streamlit
+    st.download_button(
+        label="📥 Download deze grafiek",
+        data=buf,
+        file_name=bestandsnaam,
+        mime="image/png"
+    )
 
 def bereid_data_voor_vergelijking(df, kolom_met_lijstjes, groepeer_kolom):
     """
