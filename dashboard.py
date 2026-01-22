@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import base64
+import io
 
 st.markdown("""
     <style>
@@ -228,6 +229,8 @@ if df is not None:
             sns.countplot(data=df_filtered, x='Locatie', palette='viridis', ax=ax)
             ax.bar_label(ax.containers[0])
             st.pyplot(fig)
+            # --- HIER PLAK JE DE KNOP ---
+            (fig, "mijn_mooie_grafiek.png")
             st.caption(f"Verdeling tussen Stad en Dorp binnen jouw selectie.")
             
         with col2:
@@ -236,6 +239,7 @@ if df is not None:
             sns.countplot(data=df_filtered, y='Opleiding', palette='rocket', ax=ax)
             ax.bar_label(ax.containers[0])
             st.pyplot(fig)
+            (fig, "mijn_mooie_grafiek.png")
             st.caption(f"Het opleidingsniveau van de geselecteerde groep.")
             
         # RIJ 2: Leeftijd & Geslacht
@@ -245,6 +249,7 @@ if df is not None:
             fig, ax = plt.subplots()
             sns.histplot(df_filtered['Leeftijd'], bins=10, kde=True, color='skyblue', ax=ax)
             st.pyplot(fig)
+            (fig, "mijn_mooie_grafiek.png")
             st.caption("De leeftijdsopbouw van deze groep.")
         
         with col4:
@@ -254,6 +259,7 @@ if df is not None:
             if len(counts) > 0:
                 ax.pie(counts, labels=counts.index, autopct='%1.1f%%', colors=sns.color_palette('pastel'))
             st.pyplot(fig)
+            (fig, "mijn_mooie_grafiek.png")
             st.caption("Verdeling man/vrouw/anders.")
 
     # --- TAB 2: THEMA'S ---
@@ -266,6 +272,7 @@ if df is not None:
         sns.barplot(x=top_themas.values, y=top_themas.index, palette='Reds_r', ax=ax)
         ax.set_xlabel("Aantal stemmen")
         st.pyplot(fig)
+        (fig, "mijn_mooie_grafiek.png")
         st.caption("Top 15 meest gekozen thema's door deze groep.")
 
     # --- TAB 3: MOTIVATIE ---
@@ -279,6 +286,7 @@ if df is not None:
             fig, ax = plt.subplots()
             sns.countplot(data=df_filtered, x='Deelname', palette='Set2', ax=ax)
             st.pyplot(fig)
+            (fig, "mijn_mooie_grafiek.png")
             st.caption("Willen ze meedoen aan toekomstig onderzoek?")
             
         with c2:
@@ -287,6 +295,7 @@ if df is not None:
             fig, ax = plt.subplots()
             sns.barplot(x=top_motivatie.values, y=top_motivatie.index, palette='Greens_r', ax=ax)
             st.pyplot(fig)
+            (fig, "mijn_mooie_grafiek.png")
             st.caption("Wat trekt hen over de streep?")
 
     # --- TAB 4: COMMUNICATIE ---
@@ -298,6 +307,7 @@ if df is not None:
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.barplot(x=top_kanalen.values, y=top_kanalen.index, palette='Blues_r', ax=ax)
         st.pyplot(fig)
+        (fig, "mijn_mooie_grafiek.png")
         st.caption("De populairste mediakanalen voor deze doelgroep.")
 
     # --- TAB 5: VERGELIJKEN (VERNIEUWD) ---
@@ -365,7 +375,7 @@ if df is not None:
                 ax.set_xlim(0, 100) # Percentage loopt tot 100
             
             st.pyplot(fig)
-            
+            (fig, "mijn_mooie_grafiek.png")
             if weergave == "Percentages":
                 st.info(f"💡 **Tip:** Je kijkt nu naar percentages. Voorbeeld: Als de balk bij 'Stad' op 50% staat, betekent dit dat de helft van alle jongeren uit de stad dit heeft aangevinkt.")
             else:
